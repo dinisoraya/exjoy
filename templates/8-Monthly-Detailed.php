@@ -4,6 +4,11 @@
         header('Location: ../index.php');
     }
 	include_once 'skeleton.php'; 	
+
+	// Function to format number to Rupiah
+	function formatRupiah($number) {
+		return "Rp" . number_format($number, 2, ',', '.');
+	}
 ?>
 
 <div class="wrapper">
@@ -36,7 +41,7 @@
 										echo "<tr>
 											<td>".$x."</td>
 											<td>".$mthexp[$x-1]->Item."</td>
-											<td>"."$ ".$mthexp[$x-1]->Cost."</td>
+											<td>".formatRupiah($mthexp[$x-1]->Cost)."</td>
 											<td>".date("d-m-Y",strtotime($mthexp[$x-1]->Date))."</td>
 										</tr>";	
 									  }
@@ -63,4 +68,3 @@
         </div>
 </div>
 <script src="../static/js/8-Monthly-Detailed.js"></script>
-

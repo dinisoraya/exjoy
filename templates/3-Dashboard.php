@@ -1,12 +1,17 @@
 <?php 
     include_once "../init.php";
 
-    //User login check
+    // User login check
     if ($getFromU->loggedIn() === false) {
         header('Location: ../index.php');
     }
 
     include_once 'skeleton.php'; 
+
+    // Function to format number to Rupiah
+    function formatRupiah($number) {
+        return "Rp" . number_format($number, 2, ',', '.');
+    }
     
     if (isset($_SESSION['swal']))
     {
@@ -29,7 +34,7 @@
     }
     else
     {
-        $today_expense = "Rp".$today_expense;
+        $today_expense = formatRupiah($today_expense);
     }
 
     // Yesterday's Expenses
@@ -40,7 +45,7 @@
     }
     else
     {
-        $Yesterday_expense = "Rp".$Yesterday_expense;
+        $Yesterday_expense = formatRupiah($Yesterday_expense);
     }
 
     // Last 7 Days' Expenses 
@@ -51,7 +56,7 @@
     }
     else
     {
-        $week_expense = "Rp".$week_expense;
+        $week_expense = formatRupiah($week_expense);
     }
 
     // Last 30 Days' Expenses
@@ -62,7 +67,7 @@
     }
     else
     {
-        $monthly_expense = "Rp".$monthly_expense;
+        $monthly_expense = formatRupiah($monthly_expense);
     }
 
     // Total Expenses
@@ -73,9 +78,8 @@
     }
     else
     {
-        $total_expenses = "Rp".$total_expenses;
+        $total_expenses = formatRupiah($total_expenses);
     }
-
 
     // Budget Left for the month
     $budget_left = $getFromB->checkbudget($_SESSION['UserId']);
@@ -86,94 +90,94 @@
     else
     {
         $currmonexp = $getFromE->Current_month_expenses($_SESSION['UserId']);
-        if($currmonexp==NULL)
+        if($currmonexp == NULL)
         {
             $currmonexp = 0;
         }
         $budget_left = $budget_left - $currmonexp;
-        $budget_left = "Rp".$budget_left;
+        $budget_left = formatRupiah($budget_left);
     }
-
 ?>
-    <div class="wrapper">
-        <div class="row">
-            <div class="col-4 col-m-4 col-sm-4">
-                <div class="card">
-                    <div class="counter bg-danger" style="color:white;">
-                        <p><i class="fas fa-tasks"></i></p>
-                        <h3>
-                            Today's Expenses
-                        </h3>
-                        <p style="font-size: 1.2em;">
-                            <?php echo $today_expense ?>
-                        </p>
-                    </div>
+
+<div class="wrapper">
+    <div class="row">
+        <div class="col-4 col-m-4 col-sm-4">
+            <div class="card">
+                <div class="counter bg-danger" style="color:white;">
+                    <p><i class="fas fa-tasks"></i></p>
+                    <h3>
+                        Today's Expenses
+                    </h3>
+                    <p style="font-size: 1.2em;">
+                        <?php echo $today_expense ?>
+                    </p>
                 </div>
             </div>
-            <div class="col-4 col-m-4 col-sm-4">
-                <div class="card">
-                    <div class="counter bg-primary" style="color:white;">
-                        <p><i class="fas fa-undo-alt"></i></p>
-                        <h3>
-                            Yesterday's Expenses
-                        </h3>
-                        <p style="font-size: 1.2em;">
-                            <?php echo $Yesterday_expense ?>
-                        </p>
-                    </div>
+        </div>
+        <div class="col-4 col-m-4 col-sm-4">
+            <div class="card">
+                <div class="counter bg-primary" style="color:white;">
+                    <p><i class="fas fa-undo-alt"></i></p>
+                    <h3>
+                        Yesterday's Expenses
+                    </h3>
+                    <p style="font-size: 1.2em;">
+                        <?php echo $Yesterday_expense ?>
+                    </p>
                 </div>
             </div>
-            <div class="col-4 col-m-4 col-sm-4">
-                <div class="card">
-                    <div class="counter bg-warning" style="color:white;">
-                        <p><i class="fas fa-calendar-week"></i></p>
-                        <h3>
-                            Last 7 day's Expenses
-                        </h3>
-                        <p style="font-size: 1.2em;">
-                            <?php echo $week_expense ?>
-                        </p>
-                    </div>
+        </div>
+        <div class="col-4 col-m-4 col-sm-4">
+            <div class="card">
+                <div class="counter bg-warning" style="color:white;">
+                    <p><i class="fas fa-calendar-week"></i></p>
+                    <h3>
+                        Last 7 day's Expenses
+                    </h3>
+                    <p style="font-size: 1.2em;">
+                        <?php echo $week_expense ?>
+                    </p>
                 </div>
             </div>
-            <div class="col-4 col-m-4 col-sm-4">
-                <div class="card">
-                    <div class="counter bg-vio" style="color:white;">
-                        <p><i class="fas fa-calendar"></i></p>
-                        <h3>
-                            Last 30 day's Expenses
-                        </h3>
-                        <p style="font-size: 1.2em;">
-                            <?php echo $monthly_expense ?>
-                        </p>
-                    </div>
+        </div>
+        <div class="col-4 col-m-4 col-sm-4">
+            <div class="card">
+                <div class="counter bg-vio" style="color:white;">
+                    <p><i class="fas fa-calendar"></i></p>
+                    <h3>
+                        Last 30 day's Expenses
+                    </h3>
+                    <p style="font-size: 1.2em;">
+                        <?php echo $monthly_expense ?>
+                    </p>
                 </div>
             </div>
-            <div class="col-4 col-m-4 col-sm-4">
-                <div class="card">
-                    <div class="counter bg-success" style="color:white;">
-                        <p><i class="fas fa-dollar-sign"></i></p>
-                        <h3>
-                            Monthly Budget Left
-                        </h3>
-                        <p style="font-size: 1.2em;">
-                            <?php echo $budget_left ?>
-                        </p>
-                    </div>
+        </div>
+        <div class="col-4 col-m-4 col-sm-4">
+            <div class="card">
+                <div class="counter bg-success" style="color:white;">
+                    <p><i class="fas fa-dollar-sign"></i></p>
+                    <h3>
+                        Monthly Budget Left
+                    </h3>
+                    <p style="font-size: 1.2em;">
+                        <?php echo $budget_left ?>
+                    </p>
                 </div>
             </div>
-            <div class="col-4 col-m-4 col-sm-4">
-                <div class="card">
-                    <div class="counter bg-yell" style="color:white;">
-                        <p><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></p>
-                        <h3>
-                            Total Expenses
-                        </h3>
-                        <p style="font-size: 1.2em;">
-                            <?php echo $total_expenses ?>
-                        </p>
-                    </div>
+        </div>
+        <div class="col-4 col-m-4 col-sm-4">
+            <div class="card">
+                <div class="counter bg-yell" style="color:white;">
+                    <p><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></p>
+                    <h3>
+                        Total Expenses
+                    </h3>
+                    <p style="font-size: 1.2em;">
+                        <?php echo $total_expenses ?>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
+</div>
