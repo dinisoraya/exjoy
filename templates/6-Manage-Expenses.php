@@ -22,7 +22,9 @@
 				</script>";
 	}
 
-	
+	function formatRupiah($number) {
+		return "Rp " . number_format($number, 2, ',', '.');
+	}
 ?>
 
 <div class="wrapper">
@@ -57,7 +59,7 @@
 											echo "<tr>
 												<td>".$x."</td>
 												<td>".$totexp[$x-1]->Item."</td>
-												<td>"."$ ".$totexp[$x-1]->Cost."</td>
+												<td>".formatRupiah($totexp[$x-1]->Cost)."</td>
 												<td>".date("d-m-Y",strtotime($totexp[$x-1]->Date))."</td>	
 												<td><form style='margin-block-end: 0;' action='' method='post'><input style='display:none;' name='ID' value=".$totexp[$x-1]->ID."></input><button type='submit' name='delrec' class='btn btn-default' style='background:none; color:#8f8f8f; font-size:1em;'>
 												<i class='far fa-trash-alt' style='color:red;'></i></button></form></td>
