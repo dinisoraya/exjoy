@@ -1,209 +1,276 @@
 <?php 
     include_once "../init.php";
     include_once '../connection.php';
-    
-    // User login check
+
+    // if logged in redirect user to dashboard
     if (isset($_SESSION['UserId'])) {
-      header('Location: 3-Dashboard.php');
+        header('Location: 3-Dashboard.php');
     }
 
+    $errors = []; // Array untuk menyimpan pesan kesalahan
 
-    if(isset($_POST['register']))
-    {
-        // Storing image path in database
-        if(empty($_FILES['inpFile']['name']))
-        {
-            $target = '../static/images/userlogo.png';
-        }
-        else
-        {
-            // Unique profile image name for each user
-            $profileImageName = time() .'_'. $_FILES['inpFile']['name'];
-            $target = '../static/profileImages/' . $profileImageName;
-        }
-        
+    // Fungsi untuk membersihkan input
+    function clean_input($data) {
+        $data = trim($data);
+        $data = stripslashes($data);
+        $data = htmlspecialchars($data);
+        return $data;
+    }
 
-        $fullname = $_POST['full_name'];
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-        $email = $_POST['email'];
-        $signupError = "";
-
-        // Form validation
-        $email = $getFromU->checkInput($email);
-        $fullname = $getFromU->checkInput($fullname);
-        $username = $getFromU->checkInput($username);
-        $password = $getFromU->checkInput($password);
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) 
-        {
-            $signupError = "Invalid email";
-        } 
-        elseif (strlen($fullname) > 30 || (strlen($fullname)) < 2) 
-        {
-            $signupError = "Name must be between 2-30 characters";
-        } 
-        elseif (strlen($username) > 30 || (strlen($username)) < 3) 
-        {
-            $signupError = "Username must be between 3-30 characters";
-        } 
-        elseif (strlen($password) < 6) 
-        {
-            $signupError = "Password too short";
-        }
-        elseif (strlen($password) >30) 
-        {
-            $signupError = "Password too long";
-        }
-        else 
-        {
-            if ($getFromU->checkEmail($email) === true) 
-            {
-                $signupError = "Email already registered";
-            } 
-        
-            if ($getFromU->checkUsername($username) === true) 
-            {
-                $signupError = "Username already exists";
-            }
-            else 
-            {
-                move_uploaded_file($_FILES['inpFile']['tmp_name'], $target);
-                $user_id = $getFromU->create('user', array('Email' => $email,'Password' => md5($password), 'Full_Name' => $fullname, 'Username' => $username, 'Photo' =>$target, 'RegDate' => date("Y-m-d H:i:s")));
-                $_SESSION['UserId'] = $user_id; 
-                $_SESSION['swal'] = "<script>
-                    Swal.fire({
-                        title: 'Yay!',
-                        text: 'Congrats! You are now a registered user',
-                        icon: 'success',
-                        confirmButtonText: 'Done'
-                    })
-                    </script>";
-                header('Location: 3-Dashboard.php');
+    if(isset($_POST['submit'])) {
+        // Validasi nama lengkap
+        if(empty($_POST['fullname'])) {
+            $errors['fullname'] = "Full Name is required";
+        } else {
+            $fullname = clean_input($_POST['fullname']);
+            // Validasi panjang nama
+            if(strlen($fullname) > 40) {
+                $errors['fullname'] = "Full Name must be less than 40 characters";
             }
         }
-        
+
+        // Validasi email
+        if(empty($_POST['email'])) {
+            $errors['email'] = "Email is required";
+        } else {
+            $email = clean_input($_POST['email']);
+            // Validasi format email
+            if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors['email'] = "Invalid email format";
+            } else {
+                // Validasi apakah email sudah ada
+                if($getFromU->checkEmail($email)) {
+                    $errors['email'] = "Email already exists";
+                }
+            }
+        }
+
+        // Validasi username
+        if(empty($_POST['username'])) {
+            $errors['username'] = "Username is required";
+        } else {
+            $username = clean_input($_POST['username']);
+            // Validasi panjang username
+            if(strlen($username) > 255) {
+                $errors['username'] = "Username must be less than 255 characters";
+            } else {
+                // Validasi apakah username sudah ada
+                if($getFromU->checkUsername($username)) {
+                    $errors['username'] = "Username already exists";
+                }
+            }
+        }
+
+        // Validasi password
+        if(empty($_POST['password'])) {
+            $errors['password'] = "Password is required";
+        } else {
+            $password = clean_input($_POST['password']);
+            // Validasi panjang password
+            if(strlen($password) < 6) {
+                $errors['password'] = "Password must be at least 6 characters long";
+            }
+        }
+
+        // Validasi konfirmasi password
+        if(empty($_POST['confirm-password'])) {
+            $errors['confirm-password'] = "Confirm Password is required";
+        } else {
+            $confirm_password = clean_input($_POST['confirm-password']);
+            // Validasi kesamaan password dan konfirmasi password
+            if($password !== $confirm_password) {
+                $errors['confirm-password'] = "Passwords do not match";
+            }
+        }
+
+        // Jika tidak ada kesalahan, lanjutkan dengan proses pendaftaran
+        if(empty($errors)) {
+            $fullname = $getFromU->checkInput($_POST['fullname']);
+            $email = $getFromU->checkInput($_POST['email']);
+            $username = $getFromU->checkInput($_POST['username']);
+            $password = $getFromU->checkInput($_POST['password']);
+
+            // Storing image path in database
+            if(empty($_FILES['profile-image']['name'])) {
+                $target = '../static/images/userlogo.png';
+            } else {
+                // Unique profile image name for each user
+                $profileImageName = time() .'_'. $_FILES['profile-image']['name'];
+                $target = '../static/profileImages/' . $profileImageName;
+
+                // Pindahkan file yang diunggah ke direktori target
+                if (move_uploaded_file($_FILES['profile-image']['tmp_name'], $target)) {
+                    // File berhasil dipindahkan, simpan path target di database
+                } else {
+                    // Gagal memindahkan file yang diunggah, gunakan gambar default
+                    $target = '../static/images/userlogo.png';
+                }
+            }
+            
+            // Buat entri pengguna baru dalam database
+            $user_id = $getFromU->create('user', array(
+                'Email' => $email,
+                'Password' => md5($password),
+                'Full_Name' => $fullname,
+                'Username' => $username,
+                'Photo' =>$target, // Simpan path gambar profil dalam database
+                'RegDate' => date("Y-m-d H:i:s")
+            ));
+            
+            // Set session UserId
+            $_SESSION['UserId'] = $user_id; 
+            
+            // Tampilkan pesan sukses menggunakan SweetAlert
+            $_SESSION['swal'] = "<script>
+                Swal.fire({
+                    title: 'Yay!',
+                    text: 'Congrats! You are now a registered user',
+                    icon: 'success',
+                    confirmButtonText: 'Done'
+                })
+                </script>";
+            
+            // Redirect ke halaman dashboard
+            header('Location: 3-Dashboard.php');            
+        }
     }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="../static/images/wallet.png" sizes="16x16" type="image/png">
-    <link rel="stylesheet" href="../static/css/2-sign-up.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>Expense Tracker</title>    
 </head>
 <body>
-
-    <div class="container">
-        
-        <div class="mob-hidden">
-            <h1>Create Your Account!</h1>
-        </div>
-
-        <div class="img-container">
-            <h1>Create Your Account!</h1>
-            <img src="../static/images/registration.jpg" alt="">    
-        </div>
-
-        <form action="2-sign-up.php" method="post" id="form" onsubmit = "return validate()" enctype="multipart/form-data">
+    <div class="min-h-screen bg-white shadow flex items-center justify-around flex-1">
+        <div class="flex-1 flex flex-col items-center">
+            <h1 class="text-2xl xl:text-3xl font-extrabold">
+                Sign up
+            </h1>
             
-            <!-- Image Upload -->
-            <div class="image-preview" id="imagePreview">
-                <img src="" alt="Image Preview" class="image-preview__image" id="profileDisplay">
-                <span class="image-preview__default-text"><img src="../static/images/userlogo.png" alt=""></span>
-            </div>
-            <label for="imageUpload" class="user-pic-btn" style="cursor: pointer;">Add Photo</label>
-            <input type="file" name="inpFile" id="imageUpload" accept="image/*" style="display: none">
-            
-            <!-- User details -->
-            <div class="group">
-                <div class="form-control">
-                    <i class="fa fa-user u1" aria-hidden="true"></i>
-                    <input class="fname" onkeypress="return (event.charCode > 64 && 
-                        event.charCode < 91) || (event.charCode > 96 && event.charCode < 123) || (event.charCode==32)" type="text" name="full_name" id="fullname" minlength="2" maxlength="30" placeholder="Full Name" required>
-                    <br>
-                    <small></small>
-                </div>
+            <form action="" method="post" enctype="multipart/form-data">
+                <div class="w-full flex-1 mt-8">
+                    <div class="mx-auto max-w-sm flex flex-col gap-5">
+                        <!-- profile image -->
+                        <label for="profile-image" class="flex items-center justify-center rounded-full cursor-pointer">
+                            <img id="profile-preview" src="../static/images/userlogo.png" alt="" class="w-24 h-24 rounded-full object-cover">
+                            <input id="profile-image" type="file" accept="image/*" class="hidden" name="profile-image" onchange="previewProfileImage(event)" />
+                        </label>
 
-                <div class="form-control">
-                    <i class="fa fa-envelope u2" aria-hidden="true"></i>
-                    <input type="email" name="email" id="email" placeholder="Email" required>
-                    <br>
-                    <small></small>
-                </div>
-                
+                        <!-- fullname -->
+                        <div>
+                            <input id="fullname" class="w-full p-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white" type="text" placeholder="Full Name" name="fullname" value="<?php echo isset($_POST['fullname']) ? $_POST['fullname'] : ''; ?>" />
+                            <?php if(isset($errors['fullname'])) { ?>
+                                <small class="text-red-500"><?php echo $errors['fullname']; ?></small>
+                            <?php } ?>
+                        </div>
 
-                <div class="form-control">
-                    <i class="fa fa-user-plus u3" aria-hidden="true"></i>
-                    <input type="text" name="username" id="username" placeholder="Username" minlength="3" maxlength="30" required>
-                    <br>
-                    <small></small>
-                    <span id="uname_response" style="font-family: 'Source Sans Pro'; font-size:0.8em ; color:red; font-weight:bold"></span>
-                </div>
-                
-                <div class="form-control">
-                    <i class="fa fa-key u4" aria-hidden="true"></i>
-                    <input type="password" name="password" id="password" placeholder="Password" minlength="6" maxlength="30" autocomplete="on" required>
-                    <br>
-                    <small></small>
-                </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <!-- email -->
+                            <div>
+                                <input id="email" class="w-full p-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white" type="email" placeholder="Email" name="email" value="<?php echo isset($_POST['email']) ? $_POST['email'] : ''; ?>" />
+                                <?php if(isset($errors['email'])) { ?>
+                                    <small class="text-red-500"><?php echo $errors['email']; ?></small>
+                                <?php } ?>
+                            </div>
 
-                <div class="form-control">   
-                    <i class="fa fa-key u4" aria-hidden="true"></i>
-                    <input type="password" name="password_confirm" id="confirmpassword" minlength="6" maxlength="30" placeholder="Confirm Password" autocomplete="on" required>
-                    <br>
-                    <small></small>
-                </div>
-                
-            </div>
-            <button type="submit" value="Submit" name="register">Complete</button>
-            <br>
-            <?php  
-                if (isset($signupError)) {
-                    $font = "Source Sans Pro";
-                    echo '<div style="color: red;font-family:'.$font.';">'.$signupError.'</div>';
-                }
-	        ?>
-        </form>
+                            <!-- username -->
+                            <div>
+                                <input id="username" class="w-full p-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white" type="text" placeholder="Username" name="username" value="<?php echo isset($_POST['username']) ? $_POST['username'] : ''; ?>" />
+                                <small id="username-error" class="text-red-500"><?php echo $errors['username']; ?></small>
+                            </div>
+                        </div>
 
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <!-- password -->
+                            <div>
+                                <input id="password" class="w-full p-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white" type="password" placeholder="Password" name="password" />
+                                <?php if(isset($errors['password'])) { ?>
+                                    <small class="text-red-500"><?php echo $errors['password']; ?></small>
+                                <?php } ?>
+                            </div>
+
+                            <!-- confirm password -->
+                            <div>
+                                <input id="confirm-password" class="w-full p-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white" type="password" placeholder="Confirm Password" name="confirm-password" />
+                                <?php if(isset($errors['confirm-password'])) { ?>
+                                    <small class="text-red-500"><?php echo $errors['confirm-password']; ?></small>
+                                <?php } ?>
+                            </div>
+                        </div>
+
+                        <button type="submit" name="submit" class="tracking-wide font-semibold bg-[#F27474] text-gray-100 w-full py-4 rounded-lg hover:bg-[#f16161] transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
+                            <svg class="w-6 h-6 -ml-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                <circle cx="8.5" cy="7" r="4" />
+                                <path d="M20 8v6M23 11h-6" />
+                            </svg>
+                            <span class="ml-3">
+                                Sign Up
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="items-center justify-center hidden lg:flex flex-1">
+            <img src="../static/images/registration.svg" alt="registration-illustration" class="w-auto h-96 object-cover" >
+        </div>
     </div>
-    
-    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- check username availability -->
     <script>
-        $(document).ready(function(){
-
-            $("#username").keyup(function()
-            {
-                var username = $(this).val().trim();
-                if(username != '')
-                {
-                    $("#username").css({'margin-bottom':'5px'});
-                    $("#uname_response").css({'margin-bottom':'15px'});
-                    $.ajax({
-                        url: '../ajaxfile.php',
-                        type: 'post',
-                        data: {username: username},
-                        success: function(response){
-
-                            $('#uname_response').html(response);
-
+        document.addEventListener("DOMContentLoaded", function() {
+            const usernameInput = document.getElementById('username');
+            const errorContainer = document.getElementById('username-error');
+        
+            usernameInput.addEventListener('input', function() {
+                const username = this.value.trim();
+            
+                // Lakukan panggilan AJAX untuk memeriksa ketersediaan username
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '../check_username.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.available) {
+                                errorContainer.textContent = ''; // Kosongkan pesan kesalahan jika username tersedia
+                            } else {
+                                errorContainer.textContent = 'Username already exists'; // Tampilkan pesan kesalahan jika username sudah digunakan
+                            }
+                        } else {
+                            console.error('Error:', xhr.status);
                         }
-                    });
-                }
-                else
-                {
-                    $("#uname_response").html("<br/>");
-                }
+                    }
+                };
+                xhr.send('username=' + encodeURIComponent(username));
             });
-
         });
     </script>
-    <script src="../static/js/2-sign-up.js"></script>
 
+    <!-- profile image preview -->
+    <script>
+        function previewProfileImage(event) {
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const previewImage = document.getElementById('profile-preview');
+                    previewImage.src = e.target.result;
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
 </body>
 </html>

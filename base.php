@@ -1,4 +1,3 @@
-<!-- base.php -->
 <?php 
   class Base {
     protected $pdo;
