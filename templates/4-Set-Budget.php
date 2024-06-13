@@ -5,7 +5,6 @@
     }
     include_once 'skeleton.php'; 
 
-
     if(isset($_POST['enterbudget']))
     {
         echo '<script>
