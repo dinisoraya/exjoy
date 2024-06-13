@@ -181,7 +181,7 @@
                             <!-- username -->
                             <div>
                                 <input id="username" class="w-full p-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white" type="text" placeholder="Username" name="username" value="<?php echo isset($_POST['username']) ? $_POST['username'] : ''; ?>" />
-                                <small id="username-error" class="text-red-500"><?php echo $errors['username']; ?></small>
+                                <small id="username-error" class="text-red-500"><?php echo isset($errors['username']) ? $errors['username'] : ''; ?></small>
                             </div>
                         </div>
 
