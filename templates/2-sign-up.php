@@ -213,6 +213,11 @@
                                 Sign Up
                             </span>
                         </button>
+
+                        <p class="mt-6 text-base text-gray-600 text-center">
+                            Already have an account? 
+                            <a href="../index.php" class="font-semibold text-[#F27474] hover:text-[#f16161] transition-all duration-300 ease-in-out">Sign in</a>
+                        </p>
                     </div>
                 </div>
             </form>
