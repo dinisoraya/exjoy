@@ -67,4 +67,5 @@
             </div>
         </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="../static/js/8-Monthly-Detailed.js"></script>

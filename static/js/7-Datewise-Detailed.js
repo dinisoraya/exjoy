@@ -1,40 +1,48 @@
-const primaryColor = '#4834d4'
-const warningColor = '#f0932b'
-const successColor = '#6ab04c'
-const dangerColor = '#eb4d4b'
+// Define the colors for the pie chart
+const primaryColor = '#4834d4';
+const warningColor = '#f0932b';
+const successColor = '#6ab04c';
+const dangerColor = '#eb4d4b';
 
-var tbody = document.getElementById('chart-facilitate')
+// Get the table body element that contains the data
+var tbody = document.getElementById('chart-facilitate');
 console.log(tbody);
-var z = tbody.getElementsByTagName("tr")
+var rows = tbody.getElementsByTagName("tr");
 
-var price = []
-var dates = []
+// Initialize arrays to store prices and dates
+var prices = [];
+var dates = [];
 
-for (index = 0; index < z.length; index++) { 
-    price.push(parseFloat(z[index].children[2].innerText.substring(2)))
-    dates.push(z[index].children[3].innerText) 
+// Loop through the table rows to extract the data
+for (var index = 0; index < rows.length; index++) { 
+    prices.push(parseFloat(rows[index].children[2].innerText.substring(2).replace(/,/g, '')));
+    dates.push(rows[index].children[3].innerText); 
 } 
 
-var ctx = document.getElementById('myChart')
-ctx.height = 500
-ctx.width = 500
+// Prepare the data for the pie chart
 var data = {
-	labels: dates,
-	datasets: [{
-		fill: false,
-		label: 'Expenses',
-		borderColor: successColor,
-		data: price,
-		borderWidth: 2,
-		lineTension: 0,
-	}]
-}
+    labels: dates,
+    datasets: [{
+        backgroundColor: [
+            primaryColor,
+            warningColor,
+            successColor,
+            dangerColor,
+            // Add more colors if necessary
+        ],
+        label: 'Expenses',
+        data: prices,
+    }]
+};
 
-var lineChart = new Chart(ctx, {
-	type: 'line',
-	data: data,
-	options: {
-		maintainAspectRatio: false,
-		bezierCurve: false,
-	}
-})
+// Get the canvas element for the chart
+var ctx = document.getElementById('myChart').getContext('2d');
+
+// Create the pie chart
+var pieChart = new Chart(ctx, {
+    type: 'pie',
+    data: data,
+    options: {
+        maintainAspectRatio: false,
+    }
+});

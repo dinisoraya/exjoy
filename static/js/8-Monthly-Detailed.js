@@ -24,20 +24,30 @@ ctx.width = 500
 var data = {
 	labels: dates,
 	datasets: [{
-		fill: false,
+		backgroundColor: [
+            '#FF6384',
+            '#36A2EB',
+            '#FFCE56',
+            '#4BC0C0',
+            '#9966FF',
+            '#FF99CC',
+            '#4DB8FF',
+            '#6699FF',
+            '#FF6633',
+            '#FF99CC',
+            '#99FF99',
+            '#FF6666'
+        ],
 		label: 'Expenses',
-		borderColor: successColor,
 		data: price,
 		borderWidth: 2,
-		lineTension: 0,
 	}]
 }
 
-var lineChart = new Chart(ctx, {
-	type: 'line',
+var pieChart = new Chart(ctx, {
+	type: 'pie',
 	data: data,
 	options: {
 		maintainAspectRatio: false,
-		bezierCurve: false,
 	}
 })

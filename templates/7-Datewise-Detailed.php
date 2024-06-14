@@ -68,4 +68,5 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="../static/js/7-Datewise-Detailed.js"></script>
