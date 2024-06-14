@@ -146,6 +146,18 @@
       $stmt->execute();
     }
 
+    // Returns total expense amount for the current user
+    public function currentTotalExpenses($UserId) {
+      $stmt = $this->pdo->prepare("SELECT SUM(Cost) AS TOTAL FROM expense WHERE UserId = :UserId");
+      $stmt->bindParam(":UserId", $UserId, PDO::PARAM_INT);
+      $stmt->execute();
+      $total = $stmt->fetch(PDO::FETCH_OBJ);
+      if ($total == NULL) {
+          return 0;
+      } else {
+          return $total->TOTAL;
+      }
+    }
 
   }
 ?>

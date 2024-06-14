@@ -14,15 +14,42 @@
 		$dt = date("Y-m-d H:i:s", strtotime($_POST["dateexpense"]));
 		$itemname = $_POST['item'];
 		$itemcost = $_POST['costitem'];
-		$getFromE->create("expense", array('UserId'=>$_SESSION['UserId'], 'Item' => $itemname, 'Cost'=>$itemcost, 'Date' => $dt));
-		echo '<script>
-			Swal.fire({
-				title: "Done!",
-				text: "Records Updated Successfully",
-				icon: "success",
-				confirmButtonText: "Close"
-			})
-			</script>';
+
+		// Get the user's current total expenses and budget
+		$userId = $_SESSION['UserId'];
+		$currentTotalExpenses = $getFromE->currentTotalExpenses($userId);
+		$budget = $getFromB->checkbudget($userId); // Using the checkbudget method
+
+		// Check if the budget is sufficient
+		if ($budget === NULL) {
+			echo '<script>
+				Swal.fire({
+					title: "No Budget Set!",
+					text: "Please set a budget before adding expenses.",
+					icon: "warning",
+					confirmButtonText: "Close"
+				})
+				</script>';
+		} elseif (($currentTotalExpenses + $itemcost) > $budget) {
+			echo '<script>
+				Swal.fire({
+					title: "Insufficient Budget!",
+					text: "Your budget is insufficient for this expense.",
+					icon: "error",
+					confirmButtonText: "Close"
+				})
+				</script>';
+		} else {
+			$getFromE->create("expense", array('UserId' => $userId, 'Item' => $itemname, 'Cost' => $itemcost, 'Date' => $dt));
+			echo '<script>
+				Swal.fire({
+					title: "Done!",
+					text: "Records Updated Successfully",
+					icon: "success",
+					confirmButtonText: "Close"
+				})
+				</script>';
+		}
 	}
 ?>
 
